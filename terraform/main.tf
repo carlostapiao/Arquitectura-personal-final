@@ -65,7 +65,7 @@ resource "azurerm_mssql_database" "db" {
   server_id = azurerm_mssql_server.sql.id
   sku_name  = "S0"
 }
-
+###
 resource "azurerm_mssql_firewall_rule" "allow_azure" {
   name             = "AllowAzureServices"
   server_id        = azurerm_mssql_server.sql.id
