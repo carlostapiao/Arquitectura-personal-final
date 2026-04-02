@@ -46,7 +46,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Construimos con un TAG ÚNICO basado en el RUN_ID de GitHub
+      # Construimos con el ID de ejecución para forzar el refresco en AKS
       - name: Build & Push
         uses: docker/build-push-action@v4
         with:
@@ -60,8 +60,8 @@ jobs:
 
       - name: Kubernetes Deploy
         run: |
-          # Reemplazamos el tag de la imagen en el YAML dinámicamente
+          # Cambiamos la imagen en el YAML por la nueva etiqueta dinámica
           sed -i 's|image:.*|image: acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}|g' k8s/deployment.yaml
           kubectl apply -f k8s/
-          # Esperamos a que el nuevo pod esté listo
-          kubectl rollout status deployment/it-support-app
+          # Verificamos el estado del despliegue
+          kubectl rollout status deployment/it-support-app --timeout=60s

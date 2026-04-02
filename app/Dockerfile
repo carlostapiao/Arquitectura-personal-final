@@ -1,18 +1,16 @@
-# Imagen base oficial de Node
+# Usamos Bullseye para mayor compatibilidad con los nodos de Azure
 FROM node:18-bullseye-slim
 
-# Directorio de la app
 WORKDIR /app
 
-# Instalación de dependencias
+# Instalación limpia de dependencias
 COPY package*.json ./
 RUN npm install --only=production
 
-# Copiar el código fuente
+# Copiamos el código
 COPY . .
 
-# Exponer puerto
 EXPOSE 3000
 
-# Ejecutar node directamente (evita errores de shell/arquitectura)
+# Ejecución directa para evitar errores de shell y arquitectura
 CMD ["node", "src/server.js"]
