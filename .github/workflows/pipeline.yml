@@ -14,7 +14,8 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Azure Login
         uses: azure/login@v1
@@ -32,25 +33,27 @@ jobs:
           terraform apply -auto-approve
         working-directory: ./terraform
 
-      # --- SOLUCIÓN ARQUITECTURA ---
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build & Push Docker v21
-        run: |
-          az acr login --name acrcarlos69lm
-          docker buildx build \
-            --platform linux/amd64 \
-            --tag acrcarlos69lm.azurecr.io/app-pro:v1 \
-            --push ./app
+      - name: Build & Push Docker
+        uses: docker/build-push-action@v4
+        with:
+          context: ./app
+          platforms: linux/amd64
+          push: true
+          tags: acrcarlos69lm.azurecr.io/app-pro:v1
 
       - name: Get AKS Context
         run: az aks get-credentials --resource-group rg-k8s-lab-pro --name aks-lab --overwrite-existing
 
       - name: Kubernetes Deploy
         run: |
+          # Limpiamos posibles inconsistencias antes de aplicar
+          kubectl delete deployment it-support-app --ignore-not-found
           kubectl apply -f k8s/
-          kubectl rollout restart deployment it-support-app
+          # Forzamos a que el pod nuevo sea el único
+          kubectl rollout status deployment/it-support-app

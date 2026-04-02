@@ -1,20 +1,18 @@
-# Usamos una imagen específica para evitar ambigüedades de arquitectura
-FROM --platform=linux/amd64 node:18
+# Forzamos la plataforma desde la base
+FROM --platform=linux/amd64 node:18-bullseye-slim
 
-# Directorio de trabajo
 WORKDIR /usr/src/app
 
-# Copiar archivos de dependencias
+# Copiamos archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
+# Instalación limpia
 RUN npm install --only=production
 
-# Copiar el código fuente (asegurando que se copie la carpeta src)
+# Copiamos el resto del código
 COPY . .
 
-# Exponer el puerto
-EXPOSE 3000
-
-# Usar node directamente en lugar de scripts de shell para evitar el 'exec format error'
+# EXTREMADAMENTE IMPORTANTE: 
+# Usamos la forma de "vector" para el CMD. 
+# Esto evita que se invoque /bin/sh y ejecuta node directamente.
 CMD ["node", "src/server.js"]
