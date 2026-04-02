@@ -29,16 +29,30 @@ jobs:
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init & Apply
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        working-directory: ./terraform
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # Construimos con un TAG ÚNICO basado en el RUN_ID de GitHub
       - name: Build & Push
         uses: docker/build-push-action@v4
         with:
           context: ./app
           platforms: linux/amd64
           push: true
-          # Usamos el ID de la ejecución como TAG para forzar el refresco
           tags: acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}
 
       - name: Get AKS Context
@@ -46,6 +60,8 @@ jobs:
 
       - name: Kubernetes Deploy
         run: |
-          # Usamos sed para cambiar la imagen en el yaml por la nueva con el ID de ejecución
+          # Reemplazamos el tag de la imagen en el YAML dinámicamente
           sed -i 's|image:.*|image: acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}|g' k8s/deployment.yaml
           kubectl apply -f k8s/
+          # Esperamos a que el nuevo pod esté listo
+          kubectl rollout status deployment/it-support-app
