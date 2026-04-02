@@ -43,6 +43,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   identity { type = "SystemAssigned" }
 }
 
+# Permiso para que AKS descargue de ACR
 resource "azurerm_role_assignment" "aks_acr" {
   principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name             = "AcrPull"
