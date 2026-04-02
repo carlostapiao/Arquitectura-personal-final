@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: it-support-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: it-support
+  template:
+    metadata:
+      labels:
+        app: it-support
+    spec:
+      containers:
+      - name: app
+        image: acrcarlos69lm.azurecr.io/app-pro:v1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_SERVER
+          value: "sql-server-lab21-carlos.database.windows.net"
+        - name: DB_NAME
+          value: "ticketsdb"
+        - name: DB_USER
+          value: "sqladmin"
+        - name: DB_PASSWORD
+          value: "Password1234!"
