@@ -9,30 +9,36 @@ jobs:
     name: 'Deploy Infra and App'
     runs-on: ubuntu-latest
     steps:
-      # 1. Descargar el código del repositorio
+      # 1. Descargar el código
       - name: Checkout
         uses: actions/checkout@v3
 
-      # 2. Login en Azure (Necesario para Terraform Backend y ACR)
+      # 2. Login en Azure (Para comandos de AZ CLI)
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3. INSTALAR TERRAFORM (Esto soluciona el error 127)
+      # 3. Instalar Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0 # Puedes ajustar a la versión que prefieras
+          terraform_version: 1.5.0
 
-      # 4. Ejecutar Terraform
+      # 4. Terraform Init & Apply (CON VARIABLES DE ENTORNO)
+      # Nota: Los valores de ARM_* se extraen de tu secreto AZURE_CREDENTIALS
       - name: Terraform Init & Apply
         run: |
           terraform init
           terraform apply -auto-approve
         working-directory: ./terraform
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      # 5. Build y Push de la imagen Docker
+      # 5. Build y Push Docker
       - name: Build & Push Docker
         run: |
           az acr login --name acrcarlos69lm
@@ -43,7 +49,7 @@ jobs:
         run: |
           az aks get-credentials --resource-group rg-k8s-lab-pro --name aks-lab --overwrite-existing
 
-      # 7. Desplegar Manifiestos en Kubernetes
+      # 7. Desplegar en Kubernetes
       - name: Kubernetes Deploy
         run: |
           kubectl apply -f k8s/
