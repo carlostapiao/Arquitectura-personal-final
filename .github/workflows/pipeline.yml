@@ -1,29 +1,49 @@
 name: 'CI/CD Lab 21'
+
 on:
   push:
     branches: [ main ]
 
 jobs:
   deploy:
+    name: 'Deploy Infra and App'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: azure/login@v1
+      # 1. Descargar el código del repositorio
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 2. Login en Azure (Necesario para Terraform Backend y ACR)
+      - name: Azure Login
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
-      - name: Terraform
+
+      # 3. INSTALAR TERRAFORM (Esto soluciona el error 127)
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0 # Puedes ajustar a la versión que prefieras
+
+      # 4. Ejecutar Terraform
+      - name: Terraform Init & Apply
         run: |
           terraform init
           terraform apply -auto-approve
         working-directory: ./terraform
 
-      - name: Build & Push
+      # 5. Build y Push de la imagen Docker
+      - name: Build & Push Docker
         run: |
           az acr login --name acrcarlos69lm
           docker buildx build --platform linux/amd64 -t acrcarlos69lm.azurecr.io/app-pro:v1 ./app --push
 
-      - name: K8s Deploy
+      # 6. Obtener credenciales de AKS
+      - name: Get AKS Context
         run: |
           az aks get-credentials --resource-group rg-k8s-lab-pro --name aks-lab --overwrite-existing
+
+      # 7. Desplegar Manifiestos en Kubernetes
+      - name: Kubernetes Deploy
+        run: |
           kubectl apply -f k8s/
