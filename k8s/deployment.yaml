@@ -4,6 +4,8 @@ metadata:
   name: it-support-app
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: it-support
@@ -15,15 +17,9 @@ spec:
       containers:
       - name: app
         image: acrcarlos69lm.azurecr.io/app-pro:v1
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
-        # Dar tiempo a la app para conectar a la DB
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 15
-          periodSeconds: 20
         env:
         - name: DB_SERVER
           value: "sql-server-lab21-carlos.database.windows.net"

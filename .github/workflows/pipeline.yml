@@ -32,10 +32,20 @@ jobs:
           terraform apply -auto-approve
         working-directory: ./terraform
 
-      - name: Build & Push Docker
+      # --- SOLUCIÓN ARQUITECTURA ---
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build & Push Docker v21
         run: |
           az acr login --name acrcarlos69lm
-          docker buildx build --platform linux/amd64 -t acrcarlos69lm.azurecr.io/app-pro:v1 ./app --push
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag acrcarlos69lm.azurecr.io/app-pro:v1 \
+            --push ./app
 
       - name: Get AKS Context
         run: az aks get-credentials --resource-group rg-k8s-lab-pro --name aks-lab --overwrite-existing
