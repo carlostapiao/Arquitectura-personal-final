@@ -1,0 +1,29 @@
+name: 'CI/CD Lab 21'
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        working-directory: ./terraform
+
+      - name: Build & Push
+        run: |
+          az acr login --name acrcarlos69lm
+          docker buildx build --platform linux/amd64 -t acrcarlos69lm.azurecr.io/app-pro:v1 ./app --push
+
+      - name: K8s Deploy
+        run: |
+          az aks get-credentials --resource-group rg-k8s-lab-pro --name aks-lab --overwrite-existing
+          kubectl apply -f k8s/

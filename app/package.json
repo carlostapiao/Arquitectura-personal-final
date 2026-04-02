@@ -1,0 +1,10 @@
+{
+  "name": "app-pro-v21",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "scripts": { "start": "node src/server.js" }
+}
