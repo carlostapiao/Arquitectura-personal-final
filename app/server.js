@@ -7,10 +7,10 @@ const app = express();
 app.use(express.json());
 
 // 2. Servir archivos estáticos (Frontend)
-// Esto busca index.html, script.js y style.css dentro de la carpeta 'public'
-app.use(express.static(path.join(__dirname, 'public')));
+// AJUSTE: Ahora entra a 'src' y luego a 'public' para coincidir con tu VS Code
+app.use(express.static(path.join(__dirname, 'src', 'public')));
 
-// 3. Configuración de Base de Datos (Variables de Entorno de Azure/K8s)
+// 3. Configuración de Base de Datos (Azure SQL)
 const dbConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -22,8 +22,8 @@ const dbConfig = {
     }
 };
 
-// 4. Ruta de Salud (Check para Kubernetes)
-app.get('/health', (req, res) => res.status(200).send('OK'));
+// 4. Ruta de Salud (Check para Kubernetes / APIM)
+app.get('/health', (req, res) => res.status(200).send('OK - Servidor Vivo'));
 
 // --- API: OBTENER TICKETS (GET) ---
 app.get('/api/tickets', async (req, res) => {
@@ -32,8 +32,8 @@ app.get('/api/tickets', async (req, res) => {
         let result = await pool.request().query('SELECT * FROM Tickets ORDER BY id DESC');
         res.json(result.recordset);
     } catch (err) {
-        console.error("❌ Error en SQL GET:", err.message);
-        res.status(500).json({ error: "No se pudo conectar a la base de datos" });
+        console.error("❌ Error SQL GET:", err.message);
+        res.status(500).json({ error: "Error de conexión a la base de datos" });
     }
 });
 
@@ -41,8 +41,6 @@ app.get('/api/tickets', async (req, res) => {
 app.post('/api/tickets', async (req, res) => {
     try {
         const { usuario, titulo, prioridad, descripcion } = req.body;
-        
-        // Validación básica
         if (!titulo) return res.status(400).json({ error: "El título es obligatorio" });
 
         let pool = await sql.connect(dbConfig);
@@ -56,18 +54,20 @@ app.post('/api/tickets', async (req, res) => {
         
         res.status(201).json({ message: "Ticket creado con éxito" });
     } catch (err) {
-        console.error("❌ Error en SQL POST:", err.message);
+        console.error("❌ Error SQL POST:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
 // 5. Captura cualquier otra ruta y entrega el index.html
+// AJUSTE: Ruta corregida a 'src/public' para evitar el error ENOENT
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'src', 'public', 'index.html'));
 });
 
 // 6. Inicio del Servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor Backend IT Support corriendo en puerto ${PORT}`);
+    console.log(`🚀 Servidor Backend corriendo en puerto ${PORT}`);
+    console.log(`📂 Buscando archivos en: ${path.join(__dirname, 'src', 'public')}`);
 });
