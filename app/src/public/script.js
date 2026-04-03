@@ -3,7 +3,7 @@
 // 1. Función para cargar los tickets al abrir la página
 async function cargarTickets() {
     try {
-        const respuesta = await fetch('/api/tickets');
+        const respuesta = await fetch('./api/tickets');
         const tickets = await respuesta.json();
         
         const tablaBody = document.querySelector('tbody'); // O el ID de tu tabla
