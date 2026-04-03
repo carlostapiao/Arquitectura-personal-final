@@ -1,65 +1,73 @@
-const express = require('express');
-const sql = require('mssql');
-const path = require('path');
-const app = express();
+// --- script.js (FRONTEND) ---
 
-app.use(express.json());
-// Servir archivos estáticos desde la carpeta 'public'
-app.use(express.static(path.join(__dirname, 'public')));
-
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_NAME,
-    options: { encrypt: true, trustServerCertificate: false }
-};
-
-// Ruta de Salud para Kubernetes
-app.get('/health', (req, res) => res.status(200).send('OK'));
-
-// Obtener todos los tickets (SELECT)
-app.get('/api/tickets', async (req, res) => {
+// 1. Función para cargar los tickets al abrir la página
+async function cargarTickets() {
     try {
-        let pool = await sql.connect(dbConfig);
-        let result = await pool.request().query('SELECT * FROM Tickets ORDER BY id DESC');
-        res.json(result.recordset);
-    } catch (err) {
-        console.error("Error en GET /api/tickets:", err.message);
-        res.status(500).json({ error: "Error al obtener los tickets" });
-    }
-});
-
-// Crear un nuevo ticket (INSERT)
-app.post('/api/tickets', async (req, res) => {
-    try {
-        // EXTRA: Mapeo flexible para evitar el error de NULL en la DB
-        const titulo = req.body.titulo || req.body.asunto; 
-        const usuario = req.body.usuario || 'Anónimo';
-        const prioridad = req.body.prioridad || 'Media';
-        const descripcion = req.body.descripcion || 'Sin descripción';
-
-        // Si después de intentar mapear, el título sigue vacío, lanzamos un error claro
-        if (!titulo) {
-            return res.status(400).json({ error: "El campo 'titulo' o 'asunto' es obligatorio para la DB" });
-        }
-
-        let pool = await sql.connect(dbConfig);
-        await pool.request()
-            .input('titulo', sql.VarChar, titulo)
-            .input('descripcion', sql.Text, descripcion)
-            .input('prioridad', sql.VarChar, prioridad)
-            .input('usuario', sql.VarChar, usuario)
-            .query('INSERT INTO Tickets (titulo, descripcion, prioridad, usuario, estado) VALUES (@titulo, @descripcion, @prioridad, @usuario, \'Abierto\')');
+        const respuesta = await fetch('/api/tickets');
+        const tickets = await respuesta.json();
         
-        res.status(201).json({ message: "Ticket creado con éxito" });
-    } catch (err) {
-        console.error("Error en POST /api/tickets:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
+        const tablaBody = document.querySelector('tbody'); // O el ID de tu tabla
+        tablaBody.innerHTML = ''; // Limpiamos la tabla antes de llenar
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor de Soporte IT activo en puerto ${PORT}`);
+        tickets.forEach(ticket => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${ticket.id}</td>
+                <td>${ticket.usuario}</td>
+                <td>${ticket.titulo}</td>
+                <td>${ticket.prioridad}</td>
+                <td><span class="badge ${ticket.estado === 'Abierto' ? 'bg-success' : 'bg-secondary'}">${ticket.estado}</span></td>
+            `;
+            tablaBody.appendChild(fila);
+        });
+    } catch (error) {
+        console.error('Error al obtener tickets:', error);
+    }
+}
+
+// 2. Función para crear un nuevo ticket
+async function crearTicket(event) {
+    event.preventDefault(); // Evita que la página se recargue
+
+    const usuario = document.getElementById('usuario').value;
+    const titulo = document.getElementById('titulo').value; // El input del HTML
+    const prioridad = document.getElementById('prioridad').value;
+
+    const nuevoTicket = {
+        usuario: usuario,
+        titulo: titulo,
+        prioridad: prioridad,
+        descripcion: "Ticket generado desde la web Lab 21"
+    };
+
+    try {
+        const respuesta = await fetch('/api/tickets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(nuevoTicket)
+        });
+
+        if (respuesta.ok) {
+            alert('¡Ticket creado con éxito!');
+            document.querySelector('form').reset(); // Limpia el formulario
+            cargarTickets(); // Recarga la tabla para ver el nuevo ticket
+        } else {
+            const errorData = await respuesta.json();
+            alert('Error: ' + errorData.error);
+        }
+    } catch (error) {
+        console.error('Error al enviar ticket:', error);
+    }
+}
+
+// 3. Event Listeners (Para que todo funcione al cargar)
+document.addEventListener('DOMContentLoaded', () => {
+    cargarTickets(); // Carga inicial de datos
+
+    const formulario = document.querySelector('form');
+    if (formulario) {
+        formulario.addEventListener('submit', crearTicket);
+    }
 });
