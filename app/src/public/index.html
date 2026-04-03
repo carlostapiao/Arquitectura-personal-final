@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Support System | Lab 21</title>
-    <link rel="stylesheet" href="style.css">
+    <title>IT Support System - Lab 21</title>
+    <!-- El punto '.' es clave para que APIM encuentre el CSS -->
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>IT Support System <span class="badge">Lab 21</span></h1>
-        </header>
+<body class="container mt-5">
+    <h1 class="mb-4">IT Support System Lab 21</h1>
 
-        <section class="card">
-            <h2>Abrir Nuevo Ticket</h2>
-            <form id="formTicket" class="ticket-form">
-                <input type="text" id="usuario" placeholder="Nombre de usuario" required>
-                <input type="text" id="titulo" placeholder="Asunto del problema" required>
-                <select id="prioridad">
-                    <option value="Baja">Baja</option>
-                    <option value="Media" selected>Media</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Crítica">Crítica</option>
-                </select>
-                <button type="submit" id="btnCrear">Crear Ticket</button>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title h4">Abrir Nuevo Ticket</h2>
+            <form id="ticketForm" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" id="usuario" class="form-control" placeholder="Nombre de usuario" required>
+                </div>
+                <div class="col-md-5">
+                    <input type="text" id="titulo" class="form-control" placeholder="Asunto del problema" required>
+                </div>
+                <div class="col-md-2">
+                    <select id="prioridad" class="form-select">
+                        <option value="Baja">Baja</option>
+                        <option value="Media" selected>Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Crítica">Crítica</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </div>
             </form>
-        </section>
-
-        <section class="list-section">
-            <h2>Tickets Activos</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Asunto</th>
-                            <th>Prioridad</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaTickets">
-                        <!-- Datos cargados dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
     </div>
-    <script src="script.js"></script>
+
+    <h2 class="h4 mb-3">Tickets Activos</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Asunto</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="ticketsTableBody">
+                <!-- Los datos se cargan aquí vía JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- El punto '.' asegura que cargue el JS a través del APIM -->
+    <script src="./script.js"></script>
 </body>
 </html>

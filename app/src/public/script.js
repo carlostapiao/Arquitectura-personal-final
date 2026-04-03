@@ -1,13 +1,13 @@
-// --- script.js (FRONTEND) ---
+// --- script.js (FRONTEND CORREGIDO PARA APIM) ---
 
-// 1. Función para cargar los tickets al abrir la página
 async function cargarTickets() {
     try {
+        // Usamos './' para que funcione bajo el sufijo /v1/ del APIM
         const respuesta = await fetch('./api/tickets');
         const tickets = await respuesta.json();
         
-        const tablaBody = document.querySelector('tbody'); // O el ID de tu tabla
-        tablaBody.innerHTML = ''; // Limpiamos la tabla antes de llenar
+        const tablaBody = document.getElementById('ticketsTableBody');
+        tablaBody.innerHTML = ''; 
 
         tickets.forEach(ticket => {
             const fila = document.createElement('tr');
@@ -15,8 +15,8 @@ async function cargarTickets() {
                 <td>${ticket.id}</td>
                 <td>${ticket.usuario}</td>
                 <td>${ticket.titulo}</td>
-                <td>${ticket.prioridad}</td>
-                <td><span class="badge ${ticket.estado === 'Abierto' ? 'bg-success' : 'bg-secondary'}">${ticket.estado}</span></td>
+                <td><span class="badge ${getPrioridadClass(ticket.prioridad)}">${ticket.prioridad}</span></td>
+                <td><span class="badge bg-secondary">${ticket.estado}</span></td>
             `;
             tablaBody.appendChild(fila);
         });
@@ -25,49 +25,42 @@ async function cargarTickets() {
     }
 }
 
-// 2. Función para crear un nuevo ticket
-async function crearTicket(event) {
-    event.preventDefault(); // Evita que la página se recargue
-
-    const usuario = document.getElementById('usuario').value;
-    const titulo = document.getElementById('titulo').value; // El input del HTML
-    const prioridad = document.getElementById('prioridad').value;
-
-    const nuevoTicket = {
-        usuario: usuario,
-        titulo: titulo,
-        prioridad: prioridad,
-        descripcion: "Ticket generado desde la web Lab 21"
-    };
-
-    try {
-        const respuesta = await fetch('/api/tickets', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(nuevoTicket)
-        });
-
-        if (respuesta.ok) {
-            alert('¡Ticket creado con éxito!');
-            document.querySelector('form').reset(); // Limpia el formulario
-            cargarTickets(); // Recarga la tabla para ver el nuevo ticket
-        } else {
-            const errorData = await respuesta.json();
-            alert('Error: ' + errorData.error);
-        }
-    } catch (error) {
-        console.error('Error al enviar ticket:', error);
+function getPrioridadClass(prioridad) {
+    switch(prioridad) {
+        case 'Crítica': return 'bg-danger';
+        case 'Alta': return 'bg-warning text-dark';
+        case 'Baja': return 'bg-info text-dark';
+        default: return 'bg-primary';
     }
 }
 
-// 3. Event Listeners (Para que todo funcione al cargar)
-document.addEventListener('DOMContentLoaded', () => {
-    cargarTickets(); // Carga inicial de datos
+async function crearTicket(event) {
+    event.preventDefault();
 
-    const formulario = document.querySelector('form');
-    if (formulario) {
-        formulario.addEventListener('submit', crearTicket);
+    const datos = {
+        usuario: document.getElementById('usuario').value,
+        titulo: document.getElementById('titulo').value,
+        prioridad: document.getElementById('prioridad').value,
+        descripcion: "Generado desde Web Lab 21"
+    };
+
+    try {
+        const respuesta = await fetch('./api/tickets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        if (respuesta.ok) {
+            document.getElementById('ticketForm').reset();
+            cargarTickets(); 
+        }
+    } catch (error) {
+        console.error('Error al crear ticket:', error);
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarTickets();
+    document.getElementById('ticketForm').addEventListener('submit', crearTicket);
 });
