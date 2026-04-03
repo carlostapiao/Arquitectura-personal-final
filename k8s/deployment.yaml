@@ -20,30 +20,27 @@ spec:
     spec:
       containers:
       - name: app
-        # Nota: El tag ':tmp' será reemplazado por el ${{ github.run_id }} en el Workflow
+        # El workflow reemplazará este tag automáticamente
         image: acrcarlos69lm.azurecr.io/app-pro:tmp
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
         
-        # --- Configuración de Salud (Probes) ---
-        # Verifica si el contenedor sigue vivo
+        # Sondas de salud optimizadas para Azure SQL
         livenessProbe:
           httpGet:
             path: /health
             port: 3000
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30 # Damos más tiempo para que Node inicie
           periodSeconds: 20
         
-        # Verifica si el contenedor está listo para recibir tráfico (DB conectada)
         readinessProbe:
           httpGet:
             path: /health
             port: 3000
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20 # Esperamos a que la conexión DB se estabilice
           periodSeconds: 10
 
-        # --- Variables de Entorno para la Conexión a SQL ---
         env:
         - name: DB_SERVER
           value: "sql-server-lab21-carlos.database.windows.net"
