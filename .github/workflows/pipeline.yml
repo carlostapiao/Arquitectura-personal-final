@@ -1,4 +1,4 @@
-name: 'CI/CD Lab 21'
+name: 'CI/CD Lab 21 - Ingress Mode'
 
 on:
   push:
@@ -56,40 +56,33 @@ jobs:
 
       - name: Kubernetes Deploy
         run: |
-          # 1. Actualizar tag de imagen dinámicamente
           sed -i 's|acrcarlos69lm.azurecr.io/app-pro:.*|acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}|g' k8s/deployment.yaml
-          
-          # 2. Aplicar manifiestos
           kubectl apply -f k8s/
-          
-          # 3. Esperar a que los Pods estén listos (timeout de 5 min)
           kubectl rollout status deployment/it-support-app --timeout=300s
 
-      - name: Wait for LoadBalancer IP & Update APIM
+      - name: Wait for Ingress IP & Update APIM
         run: |
-          echo "Buscando IP pública del servicio..."
-          LB_IP=""
-          # Reintento de 2 minutos para obtener la IP de Azure
-          for i in {1..12}; do
-            LB_IP=$(kubectl get svc it-support-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-            if [ -n "$LB_IP" ]; then
+          echo "Buscando IP pública del Ingress Controller..."
+          ING_IP=""
+          # Reintento de 3 minutos para que Azure asigne la IP al Ingress
+          for i in {1..18}; do
+            ING_IP=$(kubectl get ingress it-support-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            if [ -n "$ING_IP" ]; then
               break
             fi
-            echo "IP aún no asignada, reintentando en 10s..."
+            echo "Esperando IP del Ingress... (reintento $i)"
             sleep 10
           done
 
-          if [ -z "$LB_IP" ]; then
-            echo "Error: No se pudo obtener la IP del LoadBalancer"
+          if [ -z "$ING_IP" ]; then
+            echo "Error: No se encontró IP pública en el Ingress"
             exit 1
           fi
 
-          echo "IP asignada exitosamente: $LB_IP"
+          echo "IP del Ingress: $ING_IP"
 
-          # Actualizar el Backend de APIM con el ID confirmado: tickets-api
+          # Actualizar APIM para que su Backend sea el Ingress
           az apim api update --resource-group rg-k8s-lab-pro \
             --service-name apimcarlos69lm \
             --api-id tickets-api \
-            --service-url "http://$LB_IP"
-          
-          echo "¡APIM actualizado con éxito apuntando a http://$LB_IP!"
+            --service-url "http://$ING_IP"

@@ -3,7 +3,8 @@ kind: Ingress
 metadata:
   name: it-support-ingress
   annotations:
-    kubernetes.io/ingress.class: addon-http-application-routing # O nginx si usas ese controller
+    # Si usas el addon nativo de Azure:
+    kubernetes.io/ingress.class: addon-http-application-routing
 spec:
   rules:
   - http:
@@ -12,6 +13,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: it-support-service
+            name: it-support-service # Apunta al service privado
             port:
               number: 80
