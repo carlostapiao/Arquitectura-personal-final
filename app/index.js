@@ -18,11 +18,10 @@ const dbConfig = {
 // Ruta de Salud para Kubernetes
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
-// --- EL SELECT QUE TE FALTABA ---
+// Obtener todos los tickets (SELECT)
 app.get('/api/tickets', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
-        // Traemos todos los tickets ordenados por ID descendente (los nuevos primero)
         let result = await pool.request().query('SELECT * FROM Tickets ORDER BY id DESC');
         res.json(result.recordset);
     } catch (err) {
@@ -31,10 +30,20 @@ app.get('/api/tickets', async (req, res) => {
     }
 });
 
-// --- EL INSERT PARA CREAR TICKETS ---
+// Crear un nuevo ticket (INSERT)
 app.post('/api/tickets', async (req, res) => {
     try {
-        const { titulo, descripcion, prioridad, usuario } = req.body;
+        // EXTRA: Mapeo flexible para evitar el error de NULL en la DB
+        const titulo = req.body.titulo || req.body.asunto; 
+        const usuario = req.body.usuario || 'Anónimo';
+        const prioridad = req.body.prioridad || 'Media';
+        const descripcion = req.body.descripcion || 'Sin descripción';
+
+        // Si después de intentar mapear, el título sigue vacío, lanzamos un error claro
+        if (!titulo) {
+            return res.status(400).json({ error: "El campo 'titulo' o 'asunto' es obligatorio para la DB" });
+        }
+
         let pool = await sql.connect(dbConfig);
         await pool.request()
             .input('titulo', sql.VarChar, titulo)
