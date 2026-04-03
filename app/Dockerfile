@@ -1,16 +1,18 @@
-# Usamos Bullseye para mayor compatibilidad con los nodos de Azure
-FROM node:18-bullseye-slim
+FROM node:18-slim
 
 WORKDIR /app
 
-# Instalación limpia de dependencias
+# Copiamos archivos de dependencias
 COPY package*.json ./
 RUN npm install --only=production
 
-# Copiamos el código
+# COPIAR TODO EL CONTENIDO (incluyendo src y public)
 COPY . .
+
+# Si tu index.js busca 'public' pero está en 'src/public', 
+# movemos la carpeta para que coincida con el código
+RUN mv src/public ./public || true
 
 EXPOSE 3000
 
-# Ejecución directa para evitar errores de shell y arquitectura
-CMD ["node", "src/server.js"]
+CMD ["node", "index.js"]
