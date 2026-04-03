@@ -1,50 +1,39 @@
-const express = require('express');
-const sql = require('mssql');
-const path = require('path');
-const app = express();
+document.addEventListener('DOMContentLoaded', getTickets);
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+document.getElementById('formTicket').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+        usuario: document.getElementById('usuario').value,
+        titulo: document.getElementById('titulo').value,
+        prioridad: document.getElementById('prioridad').value,
+        descripcion: "Generado desde el portal de soporte"
+    };
 
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_NAME,
-    options: { encrypt: true, trustServerCertificate: false }
-};
+    await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
 
-// Ruta de Salud (Evita que K8s piense que la app está muerta)
-app.get('/health', (req, res) => res.status(200).send('OK'));
-
-app.get('/api/tickets', async (req, res) => {
-    try {
-        let pool = await sql.connect(dbConfig);
-        let result = await pool.request().query('SELECT * FROM Tickets');
-        res.json(result.recordset);
-    } catch (err) {
-        console.error("Error en DB:", err.message);
-        res.status(500).json({ error: "Error conectando a la base de datos" });
-    }
+    document.getElementById('formTicket').reset();
+    getTickets();
 });
 
-app.post('/api/tickets', async (req, res) => {
-    try {
-        const { titulo, descripcion, prioridad } = req.body;
-        let pool = await sql.connect(dbConfig);
-        await pool.request()
-            .input('titulo', sql.VarChar, titulo)
-            .input('descripcion', sql.Text, descripcion)
-            .input('prioridad', sql.VarChar, prioridad)
-            .query('INSERT INTO Tickets (titulo, descripcion, prioridad) VALUES (@titulo, @descripcion, @prioridad)');
-        res.status(201).json({ message: "Ticket creado" });
-    } catch (err) {
-        console.error("Error insertando:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
+async function getTickets() {
+    const res = await fetch('/api/tickets');
+    const tickets = await res.json();
+    const tabla = document.getElementById('tablaTickets');
+    tabla.innerHTML = '';
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor activo en puerto ${PORT}`);
-});
+    tickets.forEach(t => {
+        tabla.innerHTML += `
+            <tr>
+                <td>#${t.id}</td>
+                <td>${t.usuario || 'Anónimo'}</td>
+                <td>${t.titulo}</td>
+                <td><span class="prio-${t.prioridad}">${t.prioridad}</span></td>
+                <td>${t.estado || 'Abierto'}</td>
+            </tr>
+        `;
+    });
+}

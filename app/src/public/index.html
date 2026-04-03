@@ -1,26 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>IT Support Pro</title>
-    <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        h1 { color: #1a73e8; }
-        .ticket { border-left: 4px solid #1a73e8; padding: 10px; margin: 10px 0; background: #f8f9fa; }
-        button { background: #1a73e8; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Support System | Lab 21</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="card">
-        <h1>Soporte IT - Lab 21</h1>
-        <div id="tickets"></div>
+    <div class="container">
+        <header>
+            <h1>IT Support System <span class="badge">Lab 21</span></h1>
+        </header>
+
+        <section class="card">
+            <h2>Abrir Nuevo Ticket</h2>
+            <form id="formTicket" class="ticket-form">
+                <input type="text" id="usuario" placeholder="Nombre de usuario" required>
+                <input type="text" id="titulo" placeholder="Asunto del problema" required>
+                <select id="prioridad">
+                    <option value="Baja">Baja</option>
+                    <option value="Media" selected>Media</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Crítica">Crítica</option>
+                </select>
+                <button type="submit" id="btnCrear">Crear Ticket</button>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <h2>Tickets Activos</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Asunto</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaTickets">
+                        <!-- Datos cargados dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
-    <script>
-        fetch('/api/tickets').then(r => r.json()).then(data => {
-            document.getElementById('tickets').innerHTML = data.map(t => `
-                <div class="ticket"><strong>${t.titulo}</strong><br>${t.descripcion}</div>
-            `).join('');
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

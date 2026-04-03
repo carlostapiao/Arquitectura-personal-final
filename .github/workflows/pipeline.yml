@@ -34,23 +34,19 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Init & Apply
+      - name: Terraform Init & Apply (Infraestructura)
         run: |
           terraform init
           terraform apply -auto-approve
         working-directory: ./terraform
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build & Push
+      - name: Build & Push App
         uses: docker/build-push-action@v4
         with:
           context: ./app
-          platforms: linux/amd64
           push: true
           tags: acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}
 
@@ -59,13 +55,29 @@ jobs:
 
       - name: Kubernetes Deploy
         run: |
-          # 1. Reemplazo de imagen específico usando el ID de ejecución de GitHub
-          # Buscamos la línea que contiene nuestra imagen de ACR y reemplazamos el tag
+          # Actualizamos la imagen en el manifiesto
           sed -i 's|acrcarlos69lm.azurecr.io/app-pro:.*|acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}|g' k8s/deployment.yaml
           
-          # 2. Aplicar los manifiestos de la carpeta k8s
+          # Aplicamos todos los archivos (incluyendo el nuevo Service LoadBalancer)
           kubectl apply -f k8s/
           
-          # 3. Verificación del despliegue con un timeout extendido (90s)
-          # Esto evita que el workflow falle si Azure tarda un poco en el pull de la imagen
+          # Esperamos a que el Deployment esté listo
           kubectl rollout status deployment/it-support-app --timeout=90s
+
+      - name: Wait for LoadBalancer IP & Update APIM
+        run: |
+          # 1. Esperar hasta obtener la IP pública del servicio
+          LB_IP=""
+          while [ -z "$LB_IP" ]; do
+            echo "Esperando IP del LoadBalancer..."
+            LB_IP=$(kubectl get svc it-support-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            [ -z "$LB_IP" ] && sleep 10
+          done
+          echo "IP encontrada: $LB_IP"
+
+          # 2. Actualizar el Backend de APIM automáticamente usando Azure CLI
+          # Esto hace que APIM apunte siempre a la IP viva del clúster
+          az apim api update --resource-group rg-k8s-lab-pro \
+            --service-name apimcarlos69lm \
+            --api-id Tickets-API-Pro \
+            --service-url "http://$LB_IP/api"
