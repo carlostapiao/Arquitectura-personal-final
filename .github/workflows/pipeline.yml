@@ -1,4 +1,4 @@
-name: 'CI/CD Lab 21 - Ingress Mode'
+name: 'CI/CD Lab 21 - NGINX Ingress Automation'
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build & Push
+      - name: Build & Push App
         uses: docker/build-push-action@v4
         with:
           context: ./app
@@ -56,33 +56,44 @@ jobs:
 
       - name: Kubernetes Deploy
         run: |
+          # 1. Inyectar el tag de imagen dinámico
           sed -i 's|acrcarlos69lm.azurecr.io/app-pro:.*|acrcarlos69lm.azurecr.io/app-pro:${{ github.run_id }}|g' k8s/deployment.yaml
+          
+          # 2. Aplicar manifiestos (Service debe ser ClusterIP e Ingress con class nginx)
           kubectl apply -f k8s/
+          
+          # 3. Verificar despliegue
           kubectl rollout status deployment/it-support-app --timeout=300s
 
-      - name: Wait for Ingress IP & Update APIM
+      - name: Wait for NGINX Controller IP & Update APIM
         run: |
-          echo "Buscando IP pública del Ingress Controller..."
-          ING_IP=""
-          # Reintento de 3 minutos para que Azure asigne la IP al Ingress
-          for i in {1..18}; do
-            ING_IP=$(kubectl get ingress it-support-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-            if [ -n "$ING_IP" ]; then
+          echo "Buscando IP pública del controlador NGINX (Helm)..."
+          NGINX_IP=""
+          
+          # Reintento de 5 minutos (Azure tarda en asignar la IP al LoadBalancer de NGINX)
+          for i in {1..30}; do
+            # Buscamos la IP en el namespace 'ingress-basic' definido en tu main.tf
+            NGINX_IP=$(kubectl get svc -n ingress-basic ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            
+            if [ -n "$NGINX_IP" ]; then
               break
             fi
-            echo "Esperando IP del Ingress... (reintento $i)"
+            echo "IP de NGINX aún no asignada, reintentando en 10s... (intento $i)"
             sleep 10
           done
 
-          if [ -z "$ING_IP" ]; then
-            echo "Error: No se encontró IP pública en el Ingress"
+          if [ -z "$NGINX_IP" ]; then
+            echo "Error: No se pudo obtener la IP de NGINX en el namespace ingress-basic"
+            kubectl get svc -n ingress-basic
             exit 1
           fi
 
-          echo "IP del Ingress: $ING_IP"
+          echo "IP de NGINX encontrada: $NGINX_IP"
 
-          # Actualizar APIM para que su Backend sea el Ingress
+          # Actualizar el Backend de APIM con la IP del controlador NGINX
           az apim api update --resource-group rg-k8s-lab-pro \
             --service-name apimcarlos69lm \
             --api-id tickets-api \
-            --service-url "http://$ING_IP"
+            --service-url "http://$NGINX_IP"
+          
+          echo "¡Laboratorio 21 completado! APIM ahora apunta a NGINX Ingress."
