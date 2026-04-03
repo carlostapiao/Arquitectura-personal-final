@@ -1,74 +1,99 @@
+/* --- style.css: MODO OSCURO PROFESIONAL (Actualizado) --- */
+
+/* 1. Variables globales para cambiar colores fácilmente */
 :root {
-    --bg-color: #0d1117;
-    --card-bg: #161b22;
-    --text-color: #c9d1d9;
-    --accent-color: #1f6feb;
-    --border-color: #30363d;
+    --bg-color: #101218;        /* Fondo ultra oscuro */
+    --card-bg-color: #161922;   /* Fondo de tarjetas ligeramente más claro */
+    --text-color: #e4e6eb;      /* Texto principal claro */
+    --text-muted: #b0b3b8;     /* Texto secundario/placeholders */
+    --primary-color: #357ae8;   /* Azul brillante para acentos/botones */
+    --primary-hover: #2a62b8;   /* Azul más oscuro para hover */
+    --border-color: #2a2e37;    /* Color de bordes y líneas divisorias */
+    --success-color: #28a745;   /* Verde para badges de estado Abierto */
+    --highlight-bg: #1d212b;    /* Fondo de resaltado para inputs/filas */
 }
 
+/* 2. Estilos base del cuerpo */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
     margin: 0;
     padding: 20px;
 }
 
-.container { max-width: 1000px; margin: auto; }
+/* 3. Estilo del título principal con badge verde */
+h1 {
+    color: var(--text-color);
+    font-weight: 700;
+    margin-bottom: 40px;
+}
 
-header h1 { font-size: 2rem; margin-bottom: 30px; }
-
-.badge {
-    font-size: 0.9rem;
-    background: #238636;
-    padding: 4px 8px;
-    border-radius: 6px;
+h1::after {
+    content: "Lab 21";
+    background-color: #1a4d2e; /* Verde oscuro tipo badge */
+    color: #81c784;           /* Verde claro para el texto */
+    font-size: 0.5em;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+    margin-left: 15px;
     vertical-align: middle;
 }
 
+/* 4. Títulos secundarios "Abrir Nuevo Ticket" y "Tickets Activos" */
+h2.h4 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* 5. Contenedor de "Abrir Nuevo Ticket" (Card) */
 .card {
-    background: var(--card-bg);
+    background-color: var(--card-bg-color);
     border: 1px solid var(--border-color);
-    padding: 20px;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+/* Quitamos el título interno de la tarjeta si lo tenías */
+.card-title {
+    display: none;
+}
+
+/* 6. Estilos de los inputs y el select */
+.form-control, .form-select {
+    background-color: #1d212b; /* Fondo de input más oscuro */
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     border-radius: 8px;
-    margin-bottom: 30px;
+    padding: 12px 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.ticket-form {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+/* Placeholders de los inputs */
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
 }
 
-input, select, button {
-    background: #0d1117;
-    border: 1px solid var(--border-color);
-    color: white;
-    padding: 10px;
-    border-radius: 6px;
+/* Efecto de foco en inputs */
+.form-control:focus, .form-select:focus {
+    background-color: #1d212b;
+    border-color: var(--primary-color);
+    color: var(--text-color);
+    box-shadow: 0 0 0 3px rgba(53, 122, 232, 0.2);
 }
 
-button {
-    background: var(--accent-color);
-    cursor: pointer;
-    font-weight: bold;
-    border: none;
+/* Estilo para las opciones del select (para que no salgan blancas) */
+.form-select option {
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
 }
 
-button:hover { background: #388bfd; }
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th, td {
-    text-align: left;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.prio-Alta { color: #ff7b72; background: rgba(248,81,73,0.1); padding: 4px 8px; border-radius: 10px; }
-.prio-Media { color: #d29922; background: rgba(187,128,9,0.1); padding: 4px 8px; border-radius: 10px; }
-.prio-Baja { color: #3fb950; background: rgba(46,160,67,0.1); padding: 4px 8px; border-radius: 10px; }
+/* 7. Estilo del Botón "Crear Ticket" azul */
+.btn-primary {
