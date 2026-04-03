@@ -1,19 +1,17 @@
-/* --- style.css: MODO OSCURO PROFESIONAL (Actualizado) --- */
+/* --- style.css: MODO OSCURO PROFESIONAL --- */
 
-/* 1. Variables globales para cambiar colores fácilmente */
 :root {
-    --bg-color: #101218;        /* Fondo ultra oscuro */
-    --card-bg-color: #161922;   /* Fondo de tarjetas ligeramente más claro */
-    --text-color: #e4e6eb;      /* Texto principal claro */
-    --text-muted: #b0b3b8;     /* Texto secundario/placeholders */
-    --primary-color: #357ae8;   /* Azul brillante para acentos/botones */
-    --primary-hover: #2a62b8;   /* Azul más oscuro para hover */
-    --border-color: #2a2e37;    /* Color de bordes y líneas divisorias */
-    --success-color: #28a745;   /* Verde para badges de estado Abierto */
-    --highlight-bg: #1d212b;    /* Fondo de resaltado para inputs/filas */
+    --bg-color: #101218;
+    --card-bg-color: #161922;
+    --text-color: #e4e6eb;
+    --text-muted: #b0b3b8;
+    --primary-color: #357ae8;
+    --primary-hover: #2a62b8;
+    --border-color: #2a2e37;
+    --success-color: #28a745;
+    --highlight-bg: #1d212b;
 }
 
-/* 2. Estilos base del cuerpo */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -24,7 +22,6 @@ body {
     padding: 20px;
 }
 
-/* 3. Estilo del título principal con badge verde */
 h1 {
     color: var(--text-color);
     font-weight: 700;
@@ -33,8 +30,8 @@ h1 {
 
 h1::after {
     content: "Lab 21";
-    background-color: #1a4d2e; /* Verde oscuro tipo badge */
-    color: #81c784;           /* Verde claro para el texto */
+    background-color: #1a4d2e;
+    color: #81c784;
     font-size: 0.5em;
     font-weight: 600;
     padding: 4px 10px;
@@ -43,7 +40,6 @@ h1::after {
     vertical-align: middle;
 }
 
-/* 4. Títulos secundarios "Abrir Nuevo Ticket" y "Tickets Activos" */
 h2.h4 {
     color: var(--text-color);
     font-weight: 600;
@@ -51,7 +47,6 @@ h2.h4 {
     margin-bottom: 20px;
 }
 
-/* 5. Contenedor de "Abrir Nuevo Ticket" (Card) */
 .card {
     background-color: var(--card-bg-color);
     border: 1px solid var(--border-color);
@@ -60,40 +55,71 @@ h2.h4 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
 }
 
-/* Quitamos el título interno de la tarjeta si lo tenías */
 .card-title {
     display: none;
 }
 
-/* 6. Estilos de los inputs y el select */
 .form-control, .form-select {
-    background-color: #1d212b; /* Fondo de input más oscuro */
+    background-color: #1d212b;
     border: 1px solid var(--border-color);
     color: var(--text-color);
     border-radius: 8px;
     padding: 12px 15px;
-    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Placeholders de los inputs */
 .form-control::placeholder {
     color: var(--text-muted);
     opacity: 0.7;
 }
 
-/* Efecto de foco en inputs */
 .form-control:focus, .form-select:focus {
     background-color: #1d212b;
     border-color: var(--primary-color);
     color: var(--text-color);
     box-shadow: 0 0 0 3px rgba(53, 122, 232, 0.2);
+    outline: none;
 }
 
-/* Estilo para las opciones del select (para que no salgan blancas) */
 .form-select option {
     background-color: var(--card-bg-color);
     color: var(--text-color);
 }
 
-/* 7. Estilo del Botón "Crear Ticket" azul */
+/* AQUÍ ESTABA EL ERROR: Regla completada y cerrada */
 .btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 12px 24px;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Estilos para la tabla */
+.table {
+    color: var(--text-color);
+    margin-top: 20px;
+}
+
+.table thead th {
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.table tbody td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px;
+    vertical-align: middle;
+}
+
+.badge.bg-success {
+    background-color: #1a4d2e !important;
+    color: #a7f3d0;
+}
