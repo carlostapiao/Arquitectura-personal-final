@@ -1,18 +1,14 @@
-FROM node:18-slim
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copiamos archivos de dependencias
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install
 
-# COPIAR TODO EL CONTENIDO (incluyendo src y public)
+# Copiamos todo el contenido de la carpeta app al contenedor
 COPY . .
-
-# Si tu index.js busca 'public' pero está en 'src/public', 
-# movemos la carpeta para que coincida con el código
-RUN mv src/public ./public || true
 
 EXPOSE 3000
 
-CMD ["node", "index.js"]
+# CAMBIO CLAVE: Ejecutamos server.js en lugar de index.js
+CMD ["node", "server.js"]
