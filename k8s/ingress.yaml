@@ -1,19 +1,17 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: it-support-app
+  name: it-support-ingress
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing # O nginx si usas ese controller
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: it-support
-  template:
-    metadata:
-      labels:
-        app: it-support
-    spec:
-      containers:
-      - name: app
-        image: acrcarlos69lm.azurecr.io/app-pro:v1
-        ports:
-        - containerPort: 3000
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: it-support-service
+            port:
+              number: 80
